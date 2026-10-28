@@ -16,6 +16,17 @@ body { display: flex; flex-direction: column; height: 100dvh; }
 <body>
 <div class="test-banner">VERSION TEST (brouillon) — ne pas utiliser avec les clients</div>
 <div id="luna"></div>
+<!-- Micro en français : le widget démarre la reconnaissance vocale du navigateur sans langue, donc le téléphone utiliserait sa propre langue. On fixe fr-CA avant le chargement du widget. -->
+<script type="text/javascript">
+(function () {
+var Native = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (!Native) return;
+function FrenchRecognition() { var r = new Native(); r.lang = 'fr-CA'; return r; }
+FrenchRecognition.prototype = Native.prototype;
+window.SpeechRecognition = FrenchRecognition;
+window.webkitSpeechRecognition = FrenchRecognition;
+})();
+</script>
 <!-- Chargé une seule fois. Cette page parle au BROUILLON (draft) de Voiceflow. -->
 <script type="text/javascript">
 (function (d, t) {

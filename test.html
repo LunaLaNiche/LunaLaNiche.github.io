@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Luna — équipe (TEST Formation)</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1B6FB8">
+  <!-- Icône « Ajouter à l'écran d'accueil » -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Luna">
+  <link rel="apple-touch-icon" href="https://cm4-production-assets.s3.amazonaws.com/1789129254996-logo_luna_fondblanc.jpg">
+  <link rel="icon" href="https://cm4-production-assets.s3.amazonaws.com/1789129254996-logo_luna_fondblanc.jpg">
+  <style>
+    html, body { margin: 0; height: 100%; background: #ffffff; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+    body { display: flex; flex-direction: column; height: 100dvh; }
+    #luna { flex: 1 1 auto; min-height: 0; width: 100%; }
+    .barre { flex: 0 0 auto; display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid #e3e8ee; }
+    .barre button { min-height: 48px; padding: 0 20px; border: 0; border-radius: 24px; background: #1B6FB8; color: #fff; font: inherit; font-size: 17px; font-weight: 600; cursor: pointer; }
+    .barre button:active { background: #155a96; }
+
+    /* Scanner plein écran */
+    #scan { position: fixed; inset: 0; z-index: 2147483000; display: none; flex-direction: column; background: #000; color: #fff; }
+    #scan.ouvert { display: flex; }
+    #scan .video { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+    #scan video { width: 100%; height: 100%; object-fit: cover; }
+    #scan .cadre { position: absolute; left: 10%; right: 10%; top: 35%; height: 30%; border: 4px solid rgba(255,255,255,.9); border-radius: 16px; box-shadow: 0 0 0 9999px rgba(0,0,0,.35); pointer-events: none; }
+    #scan .aide { position: absolute; left: 0; right: 0; top: 20%; text-align: center; font-size: 20px; font-weight: 600; text-shadow: 0 1px 4px #000; padding: 0 16px; }
+    #scan .bas { flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px; padding: 16px; background: #111; }
+    #scan .ligne { display: flex; gap: 10px; }
+    #scan input { flex: 1 1 auto; min-width: 0; min-height: 52px; padding: 0 16px; border: 0; border-radius: 12px; font: inherit; font-size: 22px; letter-spacing: 1px; }
+    #scan button { min-height: 52px; padding: 0 22px; border: 0; border-radius: 26px; font: inherit; font-size: 18px; font-weight: 600; cursor: pointer; }
+    #scan .envoyer { background: #1B6FB8; color: #fff; }
+    #scan .fermer { background: #fff; color: #111; }
+    #scan .message { min-height: 1.2em; font-size: 16px; color: #ffd27a; }
+
+    /* ---------- Onglets Luna / Formation ---------- */
+    .barre { justify-content: space-between; flex-wrap: wrap; }
+    .barre .onglets, .barre .actions { display: flex; gap: 10px; align-items: center; }
+    .barre .onglet { background: #fff; color: #1B6FB8; border: 2px solid #1B6FB8; }
+    .barre .onglet.actif { background: #1B6FB8; color: #fff; }
+    .barre .onglet:active { background: #e8f1fa; }
+    .barre .onglet.actif:active { background: #155a96; }
+    .barre .badge-test { font-size: 14px; font-weight: 700; color: #b3261e; border: 2px solid #b3261e; border-radius: 8px; padding: 4px 8px; }
+    .cache { display: none !important; }
+
+    /* ---------- Formation ---------- */
+    #formation { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #f5f8fb; color: #1c2b39; }
+    #formation .page { max-width: 860px; margin: 0 auto; padding: 20px 16px 48px; }
+    #formation h1 { font-size: 28px; margin: 4px 0 6px; }
+    #formation h2 { font-size: 22px; margin: 24px 0 12px; }
+    #formation p { font-size: 18px; line-height: 1.45; margin: 8px 0; }
+    #formation .petit { font-size: 15px; color: #5a6b7b; }
+    #formation .grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    #formation .carte { display: block; width: 100%; text-align: left; border: 0; border-left: 8px solid var(--c, #1B6FB8); border-radius: 14px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.12); padding: 16px 18px; font: inherit; color: inherit; cursor: pointer; }
+    #formation .carte:active { transform: scale(.99); background: var(--f, #eef4fa); }
+    #formation .carte .nom { font-size: 22px; font-weight: 700; color: var(--c, #1B6FB8); }
+    #formation .carte .desc { font-size: 16px; line-height: 1.4; margin-top: 6px; color: #3a4a5a; }
+    #formation .carte .nb { font-size: 15px; margin-top: 8px; color: #5a6b7b; }
+    #formation .puces { display: flex; flex-wrap: wrap; gap: 10px; }
+    #formation .puce { min-height: 56px; padding: 0 22px; border: 2px solid #1B6FB8; border-radius: 28px; background: #fff; color: #1B6FB8; font: inherit; font-size: 18px; font-weight: 600; cursor: pointer; }
+    #formation .puce:active { background: #e8f1fa; }
+    #formation .bouton { min-height: 56px; padding: 0 26px; border: 0; border-radius: 28px; background: #1B6FB8; color: #fff; font: inherit; font-size: 19px; font-weight: 600; cursor: pointer; }
+    #formation .bouton:active { background: #155a96; }
+    #formation .bouton.secondaire { background: #fff; color: #1B6FB8; border: 2px solid #1B6FB8; }
+    #formation .boutons { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+    #formation .lien { border: 0; background: none; color: #1B6FB8; font: inherit; font-size: 17px; font-weight: 600; padding: 10px 0; cursor: pointer; }
+    #formation .entete { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    #formation .etiquette { display: inline-block; font-size: 15px; font-weight: 700; color: var(--c, #1B6FB8); background: var(--f, #eef4fa); border-radius: 8px; padding: 4px 10px; margin-right: 8px; }
+    #formation .progression { height: 8px; background: #dde6ef; border-radius: 4px; overflow: hidden; margin: 12px 0 18px; }
+    #formation .progression div { height: 100%; background: #1B6FB8; transition: width .25s; }
+    #formation .question { font-size: 22px; font-weight: 600; line-height: 1.4; margin: 6px 0 18px; }
+    #formation .choix { display: flex; flex-direction: column; gap: 12px; }
+    #formation .choix button { display: flex; gap: 12px; align-items: flex-start; width: 100%; min-height: 60px; padding: 14px 18px; text-align: left; border: 2px solid #c9d6e3; border-radius: 14px; background: #fff; color: #1c2b39; font: inherit; font-size: 19px; line-height: 1.35; cursor: pointer; }
+    #formation .choix button .lettre { flex: 0 0 auto; font-weight: 700; color: #1B6FB8; }
+    #formation .choix button:disabled { cursor: default; }
+    #formation .choix button.bonne { border-color: #2e7d32; background: #e8f5e9; }
+    #formation .choix button.mauvaise { border-color: #b3261e; background: #fdecea; }
+    #formation .choix button.attenue { opacity: .55; }
+    #formation .retour { margin-top: 18px; border-radius: 14px; padding: 16px 18px; background: #fff; border-left: 8px solid #1B6FB8; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+    #formation .retour.ok { border-left-color: #2e7d32; }
+    #formation .retour.non { border-left-color: #b3261e; }
+    #formation .retour .verdict { font-size: 21px; font-weight: 700; margin-bottom: 6px; }
+    #formation .score { font-size: 54px; font-weight: 800; color: #1B6FB8; margin: 10px 0 0; }
+    #formation .revoir { background: #fff; border-radius: 14px; padding: 14px 18px; margin-top: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+    #formation .revoir .q { font-weight: 600; font-size: 18px; }
+    #formation .revoir .r { color: #2e7d32; font-weight: 600; margin-top: 6px; font-size: 17px; }
+    #formation .revoir .e { margin-top: 6px; font-size: 17px; line-height: 1.45; }
+  </style>
+</head>
+<body>
+  <!-- La conversation reste sur l'appareil (même après un rechargement) jusqu'à ce que
+       l'employé·e choisisse d'en commencer une nouvelle. -->
+  <div class="barre">
+    <div class="onglets" role="tablist">
+      <button type="button" class="onglet actif" id="onglet-luna" role="tab" aria-selected="true">💬 Luna</button>
+      <button type="button" class="onglet" id="onglet-formation" role="tab" aria-selected="false">🎓 Formation</button>
+      <span class="badge-test">TEST</span>
+    </div>
+    <div class="actions" id="actions-luna">
+      <button type="button" id="scanner">📷 Scanner</button>
+      <button type="button" id="nouvelle">+ Nouvelle conversation</button>
+    </div>
+  </div>
+  <div id="luna"></div>
+  <section id="formation" class="cache" aria-label="Formation"><div class="page" id="formation-contenu"></div></section>
+
+  <div id="scan" role="dialog" aria-modal="true" aria-label="Scanner un code-barres">
+    <div class="video">
+      <video id="camera" playsinline muted></video>
+      <div class="cadre"></div>
+      <div class="aide" id="aide">Place le code-barres dans le cadre</div>
+    </div>
+    <div class="bas">
+      <div class="message" id="message"></div>
+      <div class="ligne">
+        <input id="saisie" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="ou tape les chiffres du code">
+        <button type="button" class="envoyer" id="envoyer">Envoyer</button>
+      </div>
+      <button type="button" class="fermer" id="fermer">Fermer</button>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    document.getElementById('nouvelle').addEventListener('click', function () {
+      if (!confirm('Commencer une nouvelle conversation ? La conversation actuelle sera effacée de l\'écran.')) return;
+      try {
+        // Le widget garde sa session sous des clés « voiceflow… » : on les retire puis on recharge.
+        Object.keys(localStorage).forEach(function (k) {
+          if (k.toLowerCase().indexOf('voiceflow') === 0) localStorage.removeItem(k);
+        });
+      } catch (e) {}
+      location.reload();
+    });
+  </script>
+
+  <!-- Micro en français : le widget démarre la reconnaissance vocale du navigateur sans langue,
+       donc le téléphone utiliserait sa propre langue. On fixe fr-CA avant le chargement du widget. -->
+  <script type="text/javascript">
+    (function () {
+      var Native = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Native) return;
+      function FrenchRecognition() { var r = new Native(); r.lang = 'fr-CA'; return r; }
+      FrenchRecognition.prototype = Native.prototype;
+      window.SpeechRecognition = FrenchRecognition;
+      window.webkitSpeechRecognition = FrenchRecognition;
+    })();
+  </script>
+
+  <!-- Scanner de code-barres : caméra arrière + BarcodeDetector de Chrome, ou saisie des chiffres.
+       Envoie « Code-barres : <chiffres> » à Luna (étiquette de la boutique ou code du fabricant). -->
+  <script type="text/javascript">
+    (function () {
+      var overlay = document.getElementById('scan');
+      var video = document.getElementById('camera');
+      var aide = document.getElementById('aide');
+      var message = document.getElementById('message');
+      var saisie = document.getElementById('saisie');
+      var flux = null, minuterie = null, detecteur = null, actif = false;
+
+      // UPC-E (8 chiffres) → UPC-A (12 chiffres), car la boutique enregistre les codes en UPC-A.
+      function upcEversA(c) {
+        var ns = c[0], d = c.substr(1, 6), cle = c[7], x = d[5];
+        var corps;
+        if (x === '0' || x === '1' || x === '2') corps = d.substr(0, 2) + x + '0000' + d.substr(2, 3);
+        else if (x === '3') corps = d.substr(0, 3) + '00000' + d.substr(3, 2);
+        else if (x === '4') corps = d.substr(0, 4) + '00000' + d[4];
+        else corps = d.substr(0, 5) + '0000' + x;
+        return ns + corps + cle;
+      }
+
+      function normaliser(brut, format) {
+        var c = String(brut || '').replace(/\D/g, '');
+        if (!c) return '';
+        if (c.length === 13 && c[0] === '0') return c.substr(1);        // EAN-13 d'un UPC-A
+        if (c.length === 8 && format === 'upc_e') return upcEversA(c);   // UPC-E compressé
+        return c;
+      }
+
+      function envoyer(code) {
+        if (!code) { message.textContent = 'Aucun chiffre à envoyer.'; return false; }
+        if (!window.voiceflow || !window.voiceflow.chat || !window.voiceflow.chat.interact) {
+          message.textContent = 'Luna est encore en train de charger. Réessaie dans un instant.';
+          return false;
+        }
+        window.voiceflow.chat.interact({ type: 'text', payload: 'Code-barres : ' + code });
+        return true;
+      }
+
+      function arreterCamera() {
+        actif = false;
+        if (minuterie) { clearTimeout(minuterie); minuterie = null; }
+        if (flux) { flux.getTracks().forEach(function (t) { t.stop(); }); flux = null; }
+        video.srcObject = null;
+      }
+
+      function fermer() {
+        arreterCamera();
+        overlay.classList.remove('ouvert');
+        saisie.value = '';
+        message.textContent = '';
+      }
+
+      function trouve(code) {
+        arreterCamera();
+        if (navigator.vibrate) { try { navigator.vibrate(120); } catch (e) {} }
+        if (envoyer(code)) fermer();
+      }
+
+      function boucle() {
+        if (!actif) return;
+        if (video.readyState < 2) { minuterie = setTimeout(boucle, 250); return; }
+        detecteur.detect(video).then(function (res) {
+          if (!actif) return;
+          if (res && res.length) {
+            var code = normaliser(res[0].rawValue, res[0].format);
+            if (code.length >= 8) { trouve(code); return; }
+          }
+          minuterie = setTimeout(boucle, 250);
+        }).catch(function () {
+          if (actif) minuterie = setTimeout(boucle, 400);
+        });
+      }
+
+      function modeSaisie(texte) {
+        aide.textContent = texte;
+        message.textContent = '';
+        setTimeout(function () { saisie.focus(); }, 100);
+      }
+
+      function ouvrir() {
+        overlay.classList.add('ouvert');
+        saisie.value = '';
+        message.textContent = '';
+        aide.textContent = 'Place le code-barres dans le cadre';
+
+        if (!('BarcodeDetector' in window)) {
+          modeSaisie('Ce navigateur ne lit pas les codes-barres. Tape les chiffres sous le code.');
+          return;
+        }
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          modeSaisie('Caméra non disponible. Tape les chiffres sous le code.');
+          return;
+        }
+        var formats = ['upc_a', 'ean_13', 'upc_e', 'ean_8', 'code_128'];
+        var pret = (BarcodeDetector.getSupportedFormats ? BarcodeDetector.getSupportedFormats() : Promise.resolve(formats))
+          .then(function (ok) {
+            var f = formats.filter(function (x) { return ok.indexOf(x) !== -1; });
+            detecteur = new BarcodeDetector({ formats: f.length ? f : formats });
+          });
+        pret.then(function () {
+          return navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+        }).then(function (s) {
+          if (!overlay.classList.contains('ouvert')) { s.getTracks().forEach(function (t) { t.stop(); }); return; }
+          flux = s;
+          video.srcObject = s;
+          return video.play().then(function () { actif = true; boucle(); });
+        }).catch(function (e) {
+          arreterCamera();
+          var refus = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
+          modeSaisie(refus
+            ? 'Accès à la caméra refusé. Autorise la caméra dans Chrome (cadenas à côté de l\'adresse), ou tape les chiffres.'
+            : 'Impossible d\'ouvrir la caméra. Tape les chiffres sous le code.');
+        });
+      }
+
+      document.getElementById('scanner').addEventListener('click', ouvrir);
+      document.getElementById('fermer').addEventListener('click', fermer);
+      document.getElementById('envoyer').addEventListener('click', function () {
+        // Code tapé : on ne convertit que l'EAN-13 avec 0 initial (8 chiffres peut être EAN-8 ou UPC-E).
+        var code = normaliser(saisie.value, '');
+        if (code.length < 8) { message.textContent = 'Le code doit avoir au moins 8 chiffres.'; return; }
+        if (envoyer(code)) fermer();
+      });
+      saisie.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') document.getElementById('envoyer').click();
+      });
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden && overlay.classList.contains('ouvert')) fermer();
+      });
+    })();
+  </script>
+
+  <script type="application/json" id="questions-formation">[{"id":"F1","niveau":"FACILE","theme":"Boutique et services","type":"choix","question":"Avant quelle heure une commande en ligne doit-elle être passée pour être livrée le jour même?","choix":[["11 h",0],["13 h",1],["15 h",0],["17 h",0]],"explication":"Toute commande passée avant 13 h est livrée la journée même.","source":"Page Expédition et retours du site","statut":"OK"},{"id":"F2","niveau":"FACILE","theme":"Boutique et services","type":"choix","question":"Une commande en ligne passée un dimanche est livrée…","choix":[["Le dimanche même",0],["Le lundi",1],["Le mardi",0],["Dans les 3 jours ouvrables",0]],"explication":"Les commandes du dimanche sont livrées le lundi.","source":"Page Expédition et retours du site","statut":"OK"},{"id":"F3","niveau":"FACILE","theme":"Boutique et services","type":"choix","question":"À partir de quel montant d'achat la livraison est-elle gratuite?","choix":[["50 $",0],["75 $",0],["89 $",1],["100 $",0]],"explication":"Livraison gratuite à partir de 89 $ d'achat.","source":"Circulaire de novembre 2026 (« Livraison gratuite 89 $+ »)","statut":"OK"},{"id":"F4","niveau":"FACILE","theme":"Boutique et services","type":"choix","question":"Combien de temps un client a-t-il pour rapporter un article?","choix":[["7 jours",0],["14 jours",0],["30 jours",1],["60 jours",0]],"explication":"Le client a 30 jours après l'achat pour rapporter un article, en personne, à St-Henri ou à Sainte-Marie, s'il n'a pas été utilisé (encore avec son étiquette) ou s'il est défectueux. La nourriture ne suit pas cette règle : elle a sa propre garantie satisfaction.","source":"Politique de retour; correction de la conseillère principale (10 nov. 2026)","statut":"corrigé"},{"id":"F5","niveau":"FACILE","theme":"Boutique et services","type":"vf","question":"Vrai ou faux : sans reçu, on ne peut pas faire de retour.","choix":[["Vrai",0],["Faux",1]],"explication":"Faux, si le client a un dossier chez nous : on retrouve l'achat avec son nom, son numéro de téléphone ou son numéro de commande. S'il n'a pas de dossier, le reçu est obligatoire.","source":"Politique de retour; correction de la conseillère principale (10 nov. 2026)","statut":"corrigé"},{"id":"F6","niveau":"FACILE","theme":"Boutique et services","type":"choix","question":"Quelles sont les heures d'ouverture des boutiques le jeudi?","choix":[["9 h 30 à 19 h",0],["9 h 30 à 20 h",1],["10 h à 17 h",0],["9 h à 21 h",0]],"explication":"Lundi à mercredi 9 h 30 à 19 h, jeudi et vendredi 9 h 30 à 20 h, samedi et dimanche 10 h à 17 h. Les deux boutiques ont les mêmes heures.","source":"Heures des boutiques (Luna)","statut":"OK"},{"id":"F7","niveau":"FACILE","theme":"Boutique et services","type":"choix","question":"Quel est le rabais sur les Produits de la semaine?","choix":[["10 %",0],["15 %",1],["20 %",0],["25 %",0]],"explication":"15 % de rabais, du lundi au dimanche, en boutique et en ligne. La sélection change chaque semaine.","source":"Page Produits de la semaine du site; confirmé par Matt (10 nov. 2026)","statut":"OK"},{"id":"F8","niveau":"FACILE","theme":"Boutique et services","type":"choix","question":"Avec le programme Points Luna, combien de points le client gagne-t-il par dollar dépensé?","choix":[["1 point",1],["2 points",0],["5 points",0],["10 points",0]],"explication":"1 point par dollar dépensé. Les points s'échangent contre des rabais et récompenses.","source":"Programme Points Luna (Luna client)","statut":"OK"},{"id":"F9","niveau":"FACILE","theme":"Boutique et services","type":"choix","question":"Sur la tablette, un nouveau client arrive. Que fais-tu dans l'application Luna?","choix":[["Je ferme Chrome",0],["J'appuie sur « + Nouvelle conversation »",1],["Je recharge la page",0],["Rien, je continue la conversation d'avant",0]],"explication":"« + Nouvelle conversation » efface l'écran pour le nouveau client. Recharger la page garde l'ancienne conversation.","source":"Page Luna des tablettes","statut":"corrigé"},{"id":"F10","niveau":"FACILE","theme":"Boutique et services","type":"vf","question":"Vrai ou faux : on peut combiner un rabais de la circulaire du mois avec une récompense de fidélité.","choix":[["Vrai",1],["Faux",0]],"explication":"Vrai. Les rabais de la circulaire se combinent avec la fidélité, mais ils sont valides jusqu'à épuisement des stocks.","source":"Correction de la conseillère principale, confirmée par Matt (10 nov. 2026)","statut":"corrigé"},{"id":"M1","niveau":"MOYEN","theme":"Nourriture","type":"choix","question":"Pour un chaton, quelle sorte de nourriture propose-t-on?","choix":[["Une formule « toutes les étapes de vie », comme Fromm 4*",0],["Une formule spécifique chaton, comme Oven-Baked Poulet Chaton ou Fromm Gold Chaton",1],["La même croquette que le chat adulte de la maison",0],["Seulement de la conserve",0]],"explication":"Pour un chaton, on propose d'abord une nourriture spécifique chaton. Une formule « toutes les étapes de vie » seulement pour une exception (ex. sans grains ou allergie), ou si le client a plusieurs chats et ne veut pas utiliser plusieurs nourritures : on suggère alors une formule « toutes les étapes de vie » aussi adaptée à la croissance des chatons.","source":"Kit de départ chaton (Luna); correction de la conseillère principale (10 nov. 2026)","statut":"corrigé"},{"id":"M2","niveau":"MOYEN","theme":"Nourriture","type":"vf","question":"Vrai ou faux : Fromm Gold Chaton et Oven-Baked Poulet Chaton sont sans grains.","choix":[["Vrai",0],["Faux",1]],"explication":"Faux. Ces formules chaton contiennent des grains (orge, riz, avoine). Pour un chaton sans grains, il faut une autre formule, par exemple Horizon Legacy (Chat) S.G.","source":"Kit de départ chaton (Luna), fiches produits","statut":"OK"},{"id":"M3","niveau":"MOYEN","theme":"Nourriture","type":"choix","question":"Sur combien de temps conseille-t-on de faire la transition vers une nouvelle nourriture?","choix":[["1 ou 2 jours",0],["3 jours",0],["7 à 10 jours",1],["Un mois",0]],"explication":"Garder quelques jours l'ancienne nourriture, puis mélanger graduellement sur 7 à 10 jours.","source":"Kit de départ chaton (Luna)","statut":"OK"},{"id":"M4","niveau":"MOYEN","theme":"Nourriture","type":"choix","question":"Quelle est la seule formule chiot Boréal que nous avons en boutique?","choix":[["Boréal Vital Chiot",0],["Boréal Functional Chiot Grande Race",1],["Boréal Original Chiot",0],["Boréal Proper Chiot",0]],"explication":"Functional Chiot Grande Race (avec soutien articulaire) est le seul format chiot Boréal en boutique. Pour un chiot de petite ou moyenne race, on oriente vers une autre marque.","source":"Guide de la marque Boréal (Luna)","statut":"OK"},{"id":"M5","niveau":"MOYEN","theme":"Nourriture","type":"choix","question":"Un client veut une Boréal avec des grains santé (jamais de pois ni de haricots). Quelles gammes lui montres-tu?","choix":[["Original",0],["Grains Santé, Proper ou Mélange Traditionnel",1],["Functional",0],["Vital",0]],"explication":"Grains Santé, Proper et Mélange Traditionnel utilisent des grains (avoine, orge, riz brun), jamais de pois ni de haricots. Original, Vital et Functional sont pour ceux qui veulent éviter les grains.","source":"Guide de la marque Boréal (Luna)","statut":"OK"},{"id":"M6","niveau":"MOYEN","theme":"Nourriture","type":"vf","question":"Vrai ou faux : Go! Peau & Pelage Agneau est sans grains.","choix":[["Vrai",0],["Faux",1]],"explication":"Faux. Go! Peau & Pelage Agneau contient des grains (flocons d'avoine, riz brun). Toujours vérifier sur la fiche avant de dire « sans grains ».","source":"Fiche Go! (correction du 16 oct. 2026)","statut":"OK"},{"id":"M7","niveau":"MOYEN","theme":"Nourriture","type":"choix","question":"Les conserves Almo Nature HQS N. Chaton (70 g) peuvent-ils servir de nourriture principale?","choix":[["Oui, c'est un repas complet",0],["Non : leur fiche ne dit pas que c'est un aliment complet; c'est un petit extra",1],["Oui, mais seulement pour un chat adulte",0],["Oui, si on en donne 3 par jour",0]],"explication":"Leur fiche ne dit pas qu'ils sont un aliment complet. On les présente seulement comme un extra humide, pas comme nourriture principale.","source":"Kit de départ chaton (Luna)","statut":"corrigé"},{"id":"M8","niveau":"MOYEN","theme":"Boutique et services","type":"choix","question":"Garantie satisfaction : le client peut rapporter un sac de croquettes entamé si son animal ne l'aime pas, à quelle condition?","choix":[["Le sac est fini",0],["Plus de la moitié a été utilisée",0],["Moins de la moitié a été utilisée, avec une preuve d'achat",1],["Jamais : un sac ouvert ne se retourne pas",0]],"explication":"Pour la plupart des marques de nourriture, un sac entamé (moins de la moitié utilisée) est remboursé avec une preuve d'achat, dans un délai raisonnable.","source":"Politique de retour du site","statut":"corrigé"},{"id":"M9","niveau":"MOYEN","theme":"Boutique et services","type":"vf","question":"Vrai ou faux : la nourriture crue ou congelée entamée est couverte par la garantie satisfaction.","choix":[["Vrai",1],["Faux",0]],"explication":"Vrai, à une condition : la boîte de nourriture crue rapportée en boutique doit encore avoir plus des ¾ de son contenu. Les gâteries ouvertes, elles, ne sont pas retournables, sauf si le produit est défectueux ou visé par un rappel.","source":"Correction de la conseillère principale (10 nov. 2026)","statut":"corrigé"},{"id":"M10","niveau":"MOYEN","theme":"Boutique et services","type":"choix","question":"Le code-barres de NOTRE étiquette de prix (pas celui du fabricant) commence par…","choix":[["0",0],["2100000",1],["628",0],["978",0]],"explication":"Nos étiquettes de prix ont un code de 13 chiffres qui commence par 2100000. Le scanner de Luna reconnaît notre étiquette ET le code du fabricant.","source":"Scanner de la tablette (Luna)","statut":"OK"},{"id":"D1","niveau":"DIFFICILE","theme":"Santé et suppléments","type":"choix","question":"Un client dit que son vieux chien boite. Quels ingrédients de suppléments l'équipe recommande-t-elle pour les articulations?","choix":[["Moule verte, curcuma, glucosamine, collagène",1],["Levure, ail, huile de foie de morue",0],["Biotine et zinc",0],["Charbon actif et argile",0]],"explication":"Les suppléments articulaires de l'équipe : moule verte, curcuma, glucosamine et collagène. On rappelle aussi au client de faire voir la douleur par son vétérinaire.","source":"Liste de la conseillère principale (santé articulaire)","statut":"OK"},{"id":"D2","niveau":"DIFFICILE","theme":"Santé et suppléments","type":"choix","question":"Quelles nourritures pour chien l'équipe propose-t-elle pour les articulations?","choix":[["Wholesome Blend Santé des articulations, Fromm Nutritionnel Mobilité, Oven-Baked Grande Race",1],["Fromm Gold Chaton et Oven-Baked Poulet Chaton",0],["Go! Contrôle du Poids & Articulations (Chat)",0],["Pürevolution articulation complète bœuf",0]],"explication":"Wholesome Blend S.G. Saumon & Citrouille Santé des articulations, Fromm Nutritionnel Mobilité Poulet et Oven-Baked Tradition Grande Race. Jamais une nourriture pour chat pour un chien.","source":"Liste de la conseillère principale (santé articulaire)","statut":"OK"},{"id":"D3","niveau":"DIFFICILE","theme":"Santé et suppléments","type":"vf","question":"Vrai ou faux : Pürevolution articulation complète bœuf est un supplément articulaire.","choix":[["Vrai",0],["Faux",1]],"explication":"Faux. C'est une gâterie à mâcher faite d'une articulation de bœuf, pas un supplément pour les articulations.","source":"Liste de la conseillère principale (santé articulaire)","statut":"OK"},{"id":"D4","niveau":"DIFFICILE","theme":"Santé et suppléments","type":"choix","question":"Pourquoi l'équipe propose-t-elle Oven-Baked Tradition Grande Race pour les articulations?","choix":[["Parce qu'elle est sans grains",0],["Pour ses niveaux assez élevés de glucosamine, MSM et chondroïtine",1],["Parce que c'est la moins chère",0],["Parce qu'elle est faite pour les chats âgés",0]],"explication":"Elle a des niveaux assez élevés de glucosamine, MSM et chondroïtine, pour les moyens et grands chiens.","source":"Liste de la conseillère principale (santé articulaire)","statut":"OK"},{"id":"D5","niveau":"DIFFICILE","theme":"Santé et suppléments","type":"choix","question":"Un client demande des suppléments digestifs pour son chien. Lequel n'est PAS dans la liste de l'équipe?","choix":[["Lait de chèvre fermenté Big Country Raw",0],["Thrive Orme rouge",0],["Bouillon Stella & Chewy's",1],["Citrouille (poudre ou purée)",0]],"explication":"Les bouillons ne sont pas des suppléments digestifs. La liste : lait de chèvre fermenté, tripe verte PetKind Tripett, probiotiques, orme rouge, Thrive pro-gut, citrouille.","source":"Liste de la conseillère principale (suppléments digestifs)","statut":"OK"},{"id":"D6","niveau":"DIFFICILE","theme":"Santé et suppléments","type":"choix","question":"Troubles digestifs d'un chien : dans quel cas conseilles-tu au client de consulter son vétérinaire?","choix":[["Seulement si le chien refuse de manger une journée",0],["Si ça dure plus de quelques jours, ou s'il y a du sang, des vomissements ou de l'abattement",1],["Jamais, les suppléments suffisent",0],["Seulement pour un chiot",0]],"explication":"On commence les suppléments en petites quantités. Si les troubles durent plus de quelques jours ou s'il y a du sang, des vomissements ou de l'abattement : vétérinaire.","source":"Liste de la conseillère principale (suppléments digestifs)","statut":"OK"},{"id":"D7","niveau":"DIFFICILE","theme":"Nourriture","type":"choix","question":"Un chat doit perdre du poids. Quelles nourritures l'équipe propose-t-elle en premier?","choix":[["Oven-Baked sénior/contrôle du poids et Fromm Gold poids santé",1],["Fromm Gold Chaton",0],["Des gâteries faibles en calories seulement",0],["Oven-Baked Tradition Grande Race",0]],"explication":"Pour un chat à faire maigrir : Oven-Baked Poulet sénior/contrôle du poids (Chat) et Fromm Gold poids santé (Chat).","source":"Liste de la conseillère principale (perte de poids chat)","statut":"OK"},{"id":"D8","niveau":"DIFFICILE","theme":"Nourriture","type":"choix","question":"Un chat pèse 14 lb et devrait peser 11 lb. Sur quel poids calcule-t-on sa portion?","choix":[["14 lb, son poids actuel",0],["11 lb, son poids idéal",1],["12,5 lb, entre les deux",0],["On ne calcule pas de portion pour un chat",0]],"explication":"Pour une perte de poids, on demande le poids actuel, puis le poids idéal, et la portion se calcule sur le poids IDÉAL.","source":"Liste de la conseillère principale (perte de poids chat)","statut":"OK"},{"id":"D9","niveau":"DIFFICILE","theme":"Nourriture","type":"choix","question":"D'où doit venir la portion de croquettes qu'on donne à un client?","choix":[["Le guide imprimé sur le sac",0],["La calculatrice de portion du site (le même calcul que Luna)",1],["Une estimation à l'œil",0],["Seulement le vétérinaire",0]],"explication":"Toujours la calculatrice de portion du site (même calcul que Luna) : on donne d'abord les grammes par jour, puis les tasses, et on conseille de peser la portion.","source":"Règle des portions (Luna)","statut":"OK"},{"id":"D10","niveau":"DIFFICILE","theme":"Nourriture","type":"choix","question":"Pour lequel de ces animaux n'utilise-t-on PAS la calculatrice de portion de croquettes?","choix":[["Un chien adulte stérilisé",0],["Un chat adulte",0],["Un chiot de 4 mois",1],["Un chien adulte très actif",0]],"explication":"Pas d'estimation pour un chiot, un chaton ou une femelle gestante ou qui allaite. La calculatrice n'est pas non plus pour la conserve ni le cru.","source":"Règle des portions (Luna)","statut":"OK"},{"id":"X1","niveau":"EXPERT","theme":"Santé et suppléments","type":"situation","question":"Situation : « Mon vieux labrador a de la misère à se lever. Avez-vous des gâteries pour ses articulations? » Quelle est la meilleure réponse?","choix":[["Proposer des gâteries à mâcher pour chien âgé",0],["Rappeler de consulter le vétérinaire, puis proposer des suppléments (moule verte, curcuma, glucosamine, collagène) et une nourriture articulaire",1],["Proposer une nourriture pour chat sénior",0],["Dire qu'on n'a rien pour ça",0]],"explication":"Même si le client demande des gâteries, on l'oriente vers ce qui aide vraiment : suppléments articulaires et nourriture articulaire, avec un rappel de voir le vétérinaire. S'il veut vraiment seulement une gâterie : Thrive Reflex 270 g (hanches et articulations).","source":"Correction de la conseillère principale (cas réel, oct. 2026)","statut":"corrigé"},{"id":"X2","niveau":"EXPERT","theme":"Santé et suppléments","type":"situation","question":"Situation : chien avec des douleurs articulaires. Tu vois « Go! Contrôle du Poids & Articulations (Chat) » en stock. Le proposes-tu?","choix":[["Oui, ça aide les articulations",0],["Non : c'est une nourriture pour chat, jamais pour un chien",1],["Oui, en petite quantité",0],["Oui, mélangé avec sa nourriture",0]],"explication":"Une nourriture marquée (Chat) ne se propose jamais pour un chien. Pour un chien : Wholesome Blend articulations, Fromm Nutritionnel Mobilité ou Oven-Baked Grande Race.","source":"Liste de la conseillère principale (santé articulaire)","statut":"OK"},{"id":"X3","niveau":"EXPERT","theme":"Santé et suppléments","type":"situation","question":"Situation : un client demande des suppléments pour les articulations de son CHAT. Que fais-tu?","choix":[["Je propose les suppléments pour chien de la liste",0],["Je propose seulement des produits marqués (Chat) et je suggère de demander à la conseillère pour un supplément adapté aux chats",1],["Je dis que ça n'existe pas pour les chats",0],["Je propose de la glucosamine pour humain",0]],"explication":"Pour un chat, seulement des produits marqués (Chat), par exemple Go! Contrôle du Poids & Articulations (Chat) ou Oven-Baked Pâté de Truite Recette Articulations (Chat), et on demande conseil à la conseillère pour un supplément.","source":"Liste de la conseillère principale (santé articulaire)","statut":"OK"},{"id":"X4","niveau":"EXPERT","theme":"Santé et suppléments","type":"situation","question":"Situation : « Que me suggérez-vous pour les troubles digestifs de mon chien? » Par quoi commences-tu?","choix":[["Je donne tout de suite les 6 suppléments digestifs",0],["C'est d'abord une question de nourriture : je demande l'âge et le poids, je propose une nourriture « digestion sensible », puis j'offre les suppléments à la fin",1],["Je propose un bouillon",0],["Je le réfère au vétérinaire sans rien proposer",0]],"explication":"Une question générale sur la digestion est d'abord une question de nourriture. La liste des 6 suppléments sert quand le client demande explicitement des suppléments.","source":"Liste de la conseillère principale (suppléments digestifs)","statut":"OK"},{"id":"X5","niveau":"EXPERT","theme":"Nourriture","type":"situation","question":"Situation : « Mon chat pèse 14 lb, il devrait peser 11 lb. Combien de Fromm Gold poids santé par jour? » Quelle démarche est la bonne?","choix":[["Je lis le guide sur le sac pour 14 lb",0],["Je calcule avec la calculatrice sur 11 lb en indiquant « perte de poids », je donne les grammes d'abord et je conseille de peser la portion",1],["Je divise la portion de 14 lb par deux",0],["Je donne une tasse par jour, c'est la norme",0]],"explication":"Calculatrice du site, poids IDÉAL (11 lb), « perte de poids » (l'arrondi se fait vers le bas), grammes d'abord, puis tasses, et peser la portion.","source":"Règles portion + perte de poids (conseillère principale)","statut":"OK"},{"id":"X6","niveau":"EXPERT","theme":"Nourriture","type":"situation","question":"Situation : un client veut un chaton nourri sans grains. Que proposes-tu?","choix":[["Fromm Gold Chaton",0],["Oven-Baked Poulet Chaton",0],["Une formule sans grains dont la fiche dit « chaton » ou « toutes les étapes de vie », par exemple Horizon Legacy (Chat) S.G.",1],["Une croquette sans grains pour chat adulte, peu importe la fiche",0]],"explication":"Les formules chaton habituelles contiennent des grains. On choisit une formule sans grains dont la fiche dit « chaton » ou « toutes les étapes de vie », et on dit pourquoi on sort des formules chaton.","source":"Kit de départ chaton (Luna)","statut":"OK"},{"id":"X7","niveau":"EXPERT","theme":"Nourriture","type":"vf","question":"Vrai ou faux : Fromm Classic Chiot convient aussi à un chiot de grande race (70 lb et plus à l'âge adulte).","choix":[["Vrai",1],["Faux",0]],"explication":"Vrai. Sa fiche indique qu'elle répond aux profils AAFCO pour la croissance, y compris des chiens de grande taille (70 lb ou plus à l'âge adulte). Toujours vérifier la fiche pour un autre produit.","source":"Fiche Fromm Classic Chiot (site)","statut":"OK"},{"id":"X8","niveau":"EXPERT","theme":"Boutique et services","type":"situation","question":"Situation : un client rapporte une boîte de Big Country Raw (cru congelé) entamée : « mon chien n'aime pas ça ». Que réponds-tu?","choix":[["Je le rembourse s'il reste encore plus des ¾ de la boîte : c'est garanti par la compagnie",1],["Le cru/congelé entamé n'est jamais retournable",0],["Je l'échange contre une autre saveur de cru, peu importe ce qu'il reste",0],["Je le rembourse en points Luna",0]],"explication":"Le cru est garanti par la compagnie, mais il doit rester plus des ¾ de la boîte.","source":"Correction de la conseillère principale (10 nov. 2026)","statut":"corrigé"},{"id":"X9","niveau":"EXPERT","theme":"Boutique et services","type":"situation","question":"Situation : un client rapporte un sac de croquettes acheté en ligne, dont il reste les deux tiers, sans reçu, payé par carte de crédit. Que fais-tu?","choix":[["Je refuse : pas de reçu",0],["Je retrouve l'achat avec son nom, son téléphone ou son numéro de commande, puis je rembourse en argent",1],["Je le rembourse sur sa carte de crédit au terminal de la caisse",0],["Je donne un crédit seulement",0]],"explication":"Moins de la moitié du sac a été utilisée : garantie satisfaction. Sans reçu, on retrouve l'achat dans le système (sans dossier, le reçu est obligatoire). Un achat en ligne se rembourse en boutique : en argent par le caissier, ou par PayPal/Stripe par la propriétaire ou la gérante seulement.","source":"Correction de la conseillère principale et de Matt (10 nov. 2026)","statut":"corrigé"},{"id":"X10","niveau":"EXPERT","theme":"Boutique et services","type":"situation","question":"Situation : un article de la circulaire est marqué « en boutique seulement ». Le client voit le prix régulier sur le site. Qu'expliques-tu?","choix":[["C'est une erreur, le rabais devrait être en ligne aussi",0],["Le rabais de cet article s'applique seulement en boutique, à la caisse; sur le site, c'est le prix régulier",1],["Le rabais commence seulement à la fin du mois",0],["Il faut un code promo en ligne",0]],"explication":"Certains articles de la circulaire ne sont pas sur le site en rabais. Pour ceux-là, le rabais est seulement en boutique, appliqué à la caisse.","source":"Promos du mois (Luna), suivi de la circulaire","statut":"OK"}]</script>
+  <!-- Onglet « Formation » : quiz de pratique. Rien n'est enregistré (ni nom, ni résultat) :
+       le score s'affiche à l'écran puis disparaît. Questions approuvées par la conseillère principale. -->
+  <script type="text/javascript">
+    (function () {
+      // ----- Onglets -----
+      var ongletLuna = document.getElementById('onglet-luna');
+      var ongletFormation = document.getElementById('onglet-formation');
+      var luna = document.getElementById('luna');
+      var formation = document.getElementById('formation');
+      var actionsLuna = document.getElementById('actions-luna');
+
+      function montrer(quoi) {
+        var f = quoi === 'formation';
+        luna.classList.toggle('cache', f);
+        actionsLuna.classList.toggle('cache', f);
+        formation.classList.toggle('cache', !f);
+        ongletLuna.classList.toggle('actif', !f);
+        ongletFormation.classList.toggle('actif', f);
+        ongletLuna.setAttribute('aria-selected', String(!f));
+        ongletFormation.setAttribute('aria-selected', String(f));
+      }
+      ongletLuna.addEventListener('click', function () { montrer('luna'); });
+      ongletFormation.addEventListener('click', function () { montrer('formation'); });
+
+      // ----- Questions -----
+      var toutes = [];
+      try { toutes = JSON.parse(document.getElementById('questions-formation').textContent); } catch (e) {}
+      var Q = toutes.filter(function (q) { return q.statut === 'OK' || q.statut === 'corrigé'; });
+
+      var NIVEAUX = [
+        { id: 'FACILE', nom: 'Facile', c: '#2e7d32', f: '#e8f5e9', desc: 'Première semaine : la boutique, les services et les politiques.' },
+        { id: 'MOYEN', nom: 'Moyen', c: '#9a6500', f: '#fff4d6', desc: 'Premier mois : les marques, les types de nourriture, les ingrédients.' },
+        { id: 'DIFFICILE', nom: 'Difficile', c: '#c2410c', f: '#ffeee3', desc: "Conseiller un client avec les listes de l'équipe : articulations, digestion, perte de poids, portions." },
+        { id: 'EXPERT', nom: 'Expert', c: '#b3261e', f: '#fdecea', desc: 'De vrais cas de clients où plusieurs règles se mélangent.' }
+      ];
+      var RAFRAICHIR = { id: 'MIX', nom: 'Rafraîchissement', c: '#1B6FB8', f: '#e8f1fa', desc: '5 questions mélangées de tous les niveaux. Pour garder ses connaissances à jour.' };
+      var NB_RAFRAICHIR = 5;
+      var LETTRES = 'ABCDEF';
+
+      var zone = document.getElementById('formation-contenu');
+      var quiz = null; // { niveau, titre, liste, i, bonnes, ratees, choix, repondu }
+
+      function melanger(a) {
+        a = a.slice();
+        for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+        return a;
+      }
+      function el(tag, cls, texte) {
+        var e = document.createElement(tag);
+        if (cls) e.className = cls;
+        if (texte != null) e.textContent = texte;
+        return e;
+      }
+      function couleurs(e, n) { e.style.setProperty('--c', n.c); e.style.setProperty('--f', n.f); return e; }
+      function bouton(texte, cls, action) { var b = el('button', cls, texte); b.type = 'button'; b.addEventListener('click', action); return b; }
+      function vider() { zone.innerHTML = ''; formation.scrollTop = 0; }
+      function niveau(id) { for (var i = 0; i < NIVEAUX.length; i++) if (NIVEAUX[i].id === id) return NIVEAUX[i]; return RAFRAICHIR; }
+
+      // 1. Choisir un niveau
+      function menu() {
+        quiz = null;
+        vider();
+        zone.appendChild(el('h1', '', '🎓 Formation'));
+        zone.appendChild(el('p', '', 'Choisis un niveau. Après chaque réponse, lis l\'explication : c\'est là qu\'on apprend.'));
+        if (!Q.length) { zone.appendChild(el('p', '', 'Aucune question approuvée pour le moment.')); return; }
+        var grille = el('div', 'grille');
+        NIVEAUX.forEach(function (n) {
+          var nb = Q.filter(function (q) { return q.niveau === n.id; }).length;
+          if (!nb) return;
+          grille.appendChild(carte(n, nb + ' questions', function () { themes(n); }));
+        });
+        grille.appendChild(carte(RAFRAICHIR, NB_RAFRAICHIR + ' questions', function () {
+          demarrer(RAFRAICHIR, 'Rafraîchissement', melanger(Q).slice(0, NB_RAFRAICHIR));
+        }));
+        zone.appendChild(grille);
+        zone.appendChild(el('p', 'petit', 'Pratique seulement : aucun nom ni résultat n\'est enregistré. Les réponses ont été approuvées par la conseillère principale.'));
+      }
+      function carte(n, nb, action) {
+        var b = couleurs(bouton('', 'carte', action), n);
+        b.appendChild(el('div', 'nom', n.nom));
+        b.appendChild(el('div', 'desc', n.desc));
+        b.appendChild(el('div', 'nb', nb));
+        return b;
+      }
+
+      // 2. Choisir un thème (ou tous)
+      function themes(n) {
+        var duNiveau = Q.filter(function (q) { return q.niveau === n.id; });
+        var noms = [];
+        duNiveau.forEach(function (q) { if (noms.indexOf(q.theme) === -1) noms.push(q.theme); });
+        if (noms.length < 2) { demarrer(n, n.nom, melanger(duNiveau)); return; }
+        vider();
+        zone.appendChild(bouton('← Niveaux', 'lien', menu));
+        var h = el('h1', '', 'Niveau ' + n.nom); h.style.color = n.c; zone.appendChild(h);
+        zone.appendChild(el('p', '', 'Quel thème veux-tu pratiquer?'));
+        var puces = el('div', 'puces');
+        puces.appendChild(bouton('Tous les thèmes (' + duNiveau.length + ')', 'puce', function () { demarrer(n, n.nom, melanger(duNiveau)); }));
+        noms.forEach(function (t) {
+          var liste = duNiveau.filter(function (q) { return q.theme === t; });
+          puces.appendChild(bouton(t + ' (' + liste.length + ')', 'puce', function () { demarrer(n, n.nom + ' · ' + t, melanger(liste)); }));
+        });
+        zone.appendChild(puces);
+      }
+
+      // 3. Le quiz
+      function demarrer(n, titre, liste) {
+        quiz = { niveau: n, titre: titre, liste: liste, i: 0, bonnes: 0, ratees: [] };
+        question();
+      }
+      function question() {
+        var q = quiz.liste[quiz.i];
+        quiz.repondu = false;
+        quiz.choix = q.type === 'vf' ? q.choix.slice() : melanger(q.choix);
+        vider();
+        var entete = el('div', 'entete');
+        entete.appendChild(el('div', 'petit', quiz.titre + ' — question ' + (quiz.i + 1) + ' sur ' + quiz.liste.length));
+        entete.appendChild(bouton('✕ Quitter', 'lien', function () {
+          if (confirm('Quitter ce quiz? Ton résultat ne sera pas gardé.')) menu();
+        }));
+        zone.appendChild(entete);
+        var barre = el('div', 'progression'); var plein = el('div'); plein.style.width = (quiz.i / quiz.liste.length * 100) + '%';
+        barre.appendChild(plein); zone.appendChild(barre);
+        var n = niveau(q.niveau);
+        zone.appendChild(couleurs(el('span', 'etiquette', n.nom), n));
+        zone.appendChild(el('span', 'petit', q.theme));
+        zone.appendChild(el('div', 'question', q.question));
+        var choix = el('div', 'choix');
+        quiz.choix.forEach(function (c, k) {
+          var b = bouton('', '', function () { repondre(k, choix); });
+          b.appendChild(el('span', 'lettre', LETTRES[k] + ')'));
+          b.appendChild(el('span', '', c[0]));
+          choix.appendChild(b);
+        });
+        zone.appendChild(choix);
+      }
+      function repondre(k, choix) {
+        if (quiz.repondu) return;
+        quiz.repondu = true;
+        var q = quiz.liste[quiz.i];
+        var bon = quiz.choix[k][1] === 1;
+        if (bon) quiz.bonnes++; else quiz.ratees.push(q);
+        var boutons = choix.querySelectorAll('button');
+        quiz.choix.forEach(function (c, j) {
+          boutons[j].disabled = true;
+          if (c[1] === 1) boutons[j].classList.add('bonne');
+          else if (j === k) boutons[j].classList.add('mauvaise');
+          else boutons[j].classList.add('attenue');
+        });
+        var retour = el('div', 'retour ' + (bon ? 'ok' : 'non'));
+        retour.appendChild(el('div', 'verdict', bon ? '✅ Bonne réponse!' : '❌ Pas tout à fait.'));
+        retour.appendChild(el('p', '', q.explication));
+        zone.appendChild(retour);
+        var derniere = quiz.i === quiz.liste.length - 1;
+        var suite = el('div', 'boutons');
+        suite.appendChild(bouton(derniere ? 'Voir mon résultat' : 'Question suivante →', 'bouton', function () {
+          if (derniere) fin(); else { quiz.i++; question(); }
+        }));
+        zone.appendChild(suite);
+        setTimeout(function () { retour.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); suite.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
+      }
+
+      // 4. Résultat (affiché seulement, jamais enregistré)
+      function fin() {
+        var total = quiz.liste.length, b = quiz.bonnes, pct = b / total;
+        vider();
+        zone.appendChild(el('h1', '', quiz.titre));
+        zone.appendChild(el('div', 'score', b + ' / ' + total));
+        zone.appendChild(el('p', '', pct === 1 ? (quiz.niveau.id === 'MIX' ? '🏆 Parfait! Tes connaissances sont à jour.' : '🏆 Parfait! Tu maîtrises ce niveau.')
+          : pct >= 0.8 ? '👏 Très bien! Relis les questions manquées ci-dessous.'
+          : pct >= 0.5 ? '👍 Pas mal! Relis les explications ci-dessous, puis réessaie.'
+          : '💪 Continue de pratiquer : relis les explications ci-dessous et refais le quiz.'));
+        var liste = quiz.liste, n = quiz.niveau, titre = quiz.titre;
+        var boutons = el('div', 'boutons');
+        boutons.appendChild(bouton('Refaire ce quiz', 'bouton', function () {
+          demarrer(n, titre, n.id === 'MIX' ? melanger(Q).slice(0, NB_RAFRAICHIR) : melanger(liste));
+        }));
+        boutons.appendChild(bouton('Choisir un autre niveau', 'bouton secondaire', menu));
+        zone.appendChild(boutons);
+        if (quiz.ratees.length) {
+          zone.appendChild(el('h2', '', 'À revoir'));
+          quiz.ratees.forEach(function (q) {
+            var r = el('div', 'revoir');
+            r.appendChild(el('div', 'q', q.question));
+            var bonne = q.choix.filter(function (c) { return c[1] === 1; })[0];
+            r.appendChild(el('div', 'r', '✔ ' + bonne[0]));
+            r.appendChild(el('div', 'e', q.explication));
+            zone.appendChild(r);
+          });
+        }
+      }
+
+      menu();
+    })();
+  </script>
+
+  <!-- Chargé une seule fois. Version PUBLIÉE de Voiceflow, affichée plein écran. -->
+  <script type="text/javascript">
+    (function (d, t) {
+      var v = d.createElement(t), s = d.getElementsByTagName(t)[0];
+      v.onload = function () {
+        window.voiceflow.chat.load({
+          verify: { projectID: '6aa45f238108f292ae45db64' },
+          url: 'https://general-runtime.voiceflow.com',
+          voice: { url: 'https://runtime-api.voiceflow.com' },
+          render: { mode: 'embedded', target: d.getElementById('luna') },
+          assistant: { persistence: 'localStorage' },
+          autostart: true
+        });
+      };
+      v.src = 'https://cdn.voiceflow.com/widget-next/bundle.mjs';
+      v.type = 'text/javascript';
+      s.parentNode.insertBefore(v, s);
+    })(document, 'script');
+  </script>
+</body>
+</html>

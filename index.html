@@ -82,6 +82,7 @@
     #formation .retour.ok { border-left-color: #2e7d32; }
     #formation .retour.non { border-left-color: #b3261e; }
     #formation .retour .verdict { font-size: 21px; font-weight: 700; margin-bottom: 6px; }
+    #formation .note-discussion { margin-top: 20px; padding: 14px 18px; border-radius: 14px; background: #e8f1fa; border-left: 6px solid #1B6FB8; font-size: 18px; line-height: 1.45; }
     #formation .score { font-size: 54px; font-weight: 800; color: #1B6FB8; margin: 10px 0 0; }
     #formation .revoir { background: #fff; border-radius: 14px; padding: 14px 18px; margin-top: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
     #formation .revoir .q { font-weight: 600; font-size: 18px; }
@@ -460,6 +461,11 @@
         }));
         boutons.appendChild(bouton('Choisir un autre niveau', 'bouton secondaire', menu));
         zone.appendChild(boutons);
+        var note = el('div', 'note-discussion');
+        note.appendChild(el('span', '', '💬 '));
+        note.appendChild(el('b', '', 'Ce quiz sert surtout à lancer la discussion'));
+        note.appendChild(document.createTextNode(' sur les politiques et les valeurs de la boutique. Il y a souvent d\'autres bonnes réponses que celles de la liste : parlez-en entre vous pour vous aider à les trouver.'));
+        zone.appendChild(note);
         if (quiz.ratees.length) {
           zone.appendChild(el('h2', '', 'À revoir'));
           quiz.ratees.forEach(function (q) {
